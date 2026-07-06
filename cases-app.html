@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cases App — Next.js + SuiteCRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            margin: 0;
+            padding: 40px 0;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .slide {
+            background-color: #FDFCF0;
+            border-radius: 8px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 1280px;
+            height: 720px;
+            padding: 60px 80px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 10px; height: 100%;
+            background-color: #001F3F;
+            z-index: 10;
+        }
+
+        h1, h2, h3, .slide-title {
+            color: #001F3F;
+            font-family: 'Merriweather', serif;
+            margin: 0;
+        }
+
+        h1 { font-size: 54px; font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+        .slide-title { font-size: 40px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 30px; }
+        h3 { font-size: 26px; color: #11CAA0; margin-bottom: 10px; }
+        p, li, td, th { font-size: 18px; line-height: 1.6; color: #334155; }
+        ul { margin: 0; padding-left: 20px; }
+
+        .subtitle { font-size: 24px; color: #64748b; margin-top: 0; margin-bottom: 25px; font-weight: 400; }
+        .slide-title + .subtitle { margin-top: -10px; }
+
+        code {
+            background: #f1f5f9;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #001F3F;
+        }
+        .trace-box code { background: transparent; padding: 0; color: #e2e8f0; }
+
+        .content { display: flex; flex-direction: column; flex-grow: 1; justify-content: center; width: 100%; min-height: 0; }
+        .content-top { justify-content: flex-start; padding-top: 0; }
+        .center-layout { text-align: center; align-items: center; justify-content: center; }
+        .center-layout hr { width: 80px; border: 3px solid #11CAA0; margin-bottom: 30px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; align-items: start; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; width: 100%; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; }
+
+        .card { background-color: #fff; padding: 30px; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .card .icon { font-size: 32px; color: #001F3F; margin-bottom: 15px; }
+        .card p { font-size: 16px; margin: 0; }
+
+        table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 10px; }
+        th { background-color: #001F3F; color: #fff; text-align: left; padding: 15px; font-family: 'DM Sans', sans-serif; font-size: 16px; }
+        td { padding: 15px; border-bottom: 1px solid #e2e8f0; font-size: 16px; vertical-align: top; }
+        tr:nth-child(even) td { background-color: #f8fafc; }
+
+        .flow-path { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 20px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 20px; }
+        .flow-step { text-align: center; font-weight: 700; color: #001F3F; font-size: 16px; flex: 1; }
+        .flow-arrow { color: #11CAA0; font-size: 20px; padding: 0 10px; }
+
+        .checklist { list-style: none; padding: 0; margin: 0; }
+        .checklist li { position: relative; padding-left: 40px; margin-bottom: 16px; font-size: 17px; font-weight: 500; }
+        .checklist li::before { content: '\f00c'; font-family: 'FontAwesome'; position: absolute; left: 0; color: #11CAA0; font-size: 20px; }
+
+        .trace-box { background: #001F3F; color: white; padding: 20px 25px; border-radius: 8px; font-family: monospace; font-size: 14px; line-height: 1.7; margin-top: 15px; white-space: pre-wrap; }
+        .trace-box span { color: #11CAA0; font-weight: bold; }
+
+        .quote-box {
+            background: #fff;
+            border-left: 5px solid #11CAA0;
+            padding: 25px 30px;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            margin-top: 10px;
+        }
+        .quote-box p { font-size: 20px; font-style: italic; color: #001F3F; margin: 0; line-height: 1.5; }
+        .quote-box .attribution { font-size: 14px; color: #64748b; font-style: normal; margin-top: 12px; }
+
+        .highlight-box {
+            background: #001F3F;
+            color: #fff;
+            padding: 25px 30px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .highlight-box p { color: #e2e8f0; margin: 0; font-size: 18px; }
+        .highlight-box strong { color: #11CAA0; }
+
+        .compact-slide .slide-title { margin-bottom: 10px; }
+        .compact-slide .subtitle { font-size: 20px; margin-bottom: 18px; }
+        .compact-slide p, .compact-slide li { font-size: 17px; }
+        .compact-slide .trace-box { font-size: 12px; line-height: 1.55; padding: 14px 18px; margin-top: 0; }
+        .compact-slide .card { padding: 20px; }
+        .compact-slide table th { padding: 10px; font-size: 14px; }
+        .compact-slide table td { padding: 10px; font-size: 14px; }
+
+        .card ul { font-size: 16px; line-height: 1.7; }
+        .card ul li { margin-bottom: 6px; color: #334155; }
+
+        a { color: #11CAA0; }
+
+        .demo-video-shell {
+            width: 100%;
+            max-width: 900px;
+            background: #001F3F;
+            border-radius: 8px;
+            position: relative;
+        }
+        .demo-video-shell iframe {
+            width: 100%;
+            height: 420px;
+            border: none;
+            border-radius: 8px;
+            display: block;
+            background: #001F3F;
+        }
+        .demo-fs-overlay {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            z-index: 25;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #11CAA0;
+            color: #001F3F;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        }
+        .demo-fs-overlay:hover { background: #0eb894; }
+        .demo-fs-exit {
+            display: none;
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 30;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #001F3F;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+        .demo-video-shell.is-expanded {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            border-radius: 0;
+            padding: 0;
+            background: #000;
+        }
+        .demo-video-shell.is-expanded iframe {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+        }
+        .demo-video-shell.is-expanded .demo-fs-exit {
+            display: inline-flex;
+        }
+        .demo-video-shell.is-expanded .demo-fs-overlay {
+            display: none;
+        }
+        .demo-video-shell:fullscreen,
+        .demo-video-shell:-webkit-full-screen {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            border-radius: 0;
+            padding: 0;
+            background: #000;
+        }
+        .demo-video-shell:fullscreen iframe,
+        .demo-video-shell:-webkit-full-screen iframe {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+        }
+        .demo-video-shell:fullscreen .demo-fs-exit,
+        .demo-video-shell:-webkit-full-screen .demo-fs-exit {
+            display: inline-flex;
+        }
+        .demo-video-shell:fullscreen .demo-fs-overlay,
+        .demo-video-shell:-webkit-full-screen .demo-fs-overlay {
+            display: none;
+        }
+        .demo-video-link {
+            margin-top: 12px;
+            font-size: 16px;
+            color: #64748b;
+        }
+        body.demo-video-open {
+            overflow: hidden;
+        }
+
+        @media print {
+            body { background: #fff; padding: 0; gap: 0; }
+            .slide { box-shadow: none; page-break-after: always; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide center-layout">
+    <div class="content center-layout">
+        <hr>
+        <h1>Cases App</h1>
+        <p class="subtitle" style="margin-bottom: 0;">Next.js + SuiteCRM — beginner guide to CRUD, routing, and the V8 API</p>
+    </div>
+</div>
+
+<!-- Slide 2: Intro -->
+<div class="slide">
+    <h2 class="slide-title">What This App Does</h2>
+    <div class="content">
+        <div class="grid-2">
+            <div>
+                <p>A small web app that manages <strong>Cases</strong> in SuiteCRM. You can list, add, edit, and delete cases from a browser page.</p>
+                <p style="margin-top: 20px;">Data is stored in SuiteCRM — <strong>not</strong> in the Next.js app.</p>
+            </div>
+            <div class="highlight-box">
+                <p>Built for beginners: the UI talks to <strong>your</strong> API routes, and those routes talk to the <strong>SuiteCRM V8 API</strong>.</p>
+                <p style="margin-top: 15px;">The browser <strong>never</strong> calls SuiteCRM directly. It only calls <code>/api/cases</code>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: Prerequisites -->
+<div class="slide">
+    <h2 class="slide-title">What You Need Before Starting</h2>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>Tool</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Node.js</strong> (v18+)</td><td>Runs the Next.js app</td></tr>
+                <tr><td><strong>npm</strong></td><td>Installs packages</td></tr>
+                <tr><td><strong>WAMP</strong> (or similar)</td><td>Runs SuiteCRM on <code>http://localhost/SuiteCRM7151</code></td></tr>
+                <tr><td><strong>SuiteCRM 7.15+</strong></td><td>CRM with Cases module and V8 API enabled</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Slide 4: Quick start -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Quick Start</h2>
+    <div class="content content-top">
+        <div class="trace-box"><span># 1. Install dependencies</span>
+npm install
+
+<span># 2. Copy env file and set your SuiteCRM password</span>
+copy env.example .env.local
+
+<span># 3. Start Next.js</span>
+npm run dev</div>
+        <div class="grid-2" style="margin-top: 20px;">
+            <div class="card">
+                <h3 style="font-size: 20px;">Open in browser</h3>
+                <ul>
+                    <li>App home: <code>http://localhost:3000</code></li>
+                    <li>Cases page: <code>http://localhost:3000/cases</code></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 20px;">SuiteCRM must be running</h3>
+                <p>At the URL in <code>.env.local</code> (default: <code>http://localhost/SuiteCRM7151</code>).</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: Project structure -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Project Structure</h2>
+    <p class="subtitle">What each file does</p>
+    <div class="content content-top">
+        <div class="trace-box" style="font-size: 11px;">my-application/
+├── app/
+│   ├── layout.tsx              # Wraps every page (HTML shell, loads CSS)
+│   ├── page.tsx                # Home page at /
+│   ├── globals.css             # Tailwind / global styles
+│   ├── cases/
+│   │   └── page.tsx            # Cases UI at /cases (form + list)
+│   └── api/
+│       └── cases/
+│           ├── route.ts        # GET all cases, POST new case
+│           └── [id]/
+│               └── route.ts    # PATCH update, DELETE one case
+├── lib/
+│   └── suitecrm.ts             # Login + talk to SuiteCRM V8 API
+├── .env.local                  # Secrets (NOT committed to git)
+├── env.example                 # Template for .env.local
+└── package.json                # Dependencies and scripts</div>
+    </div>
+</div>
+
+<!-- Slide 6: Three layers -->
+<div class="slide">
+    <h2 class="slide-title">Three Layers</h2>
+    <div class="content content-top">
+        <div class="flow-path">
+            <div class="flow-step">Browser (UI)<br><code>/cases</code> page</div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">Next.js API<br><code>/api/cases</code></div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">SuiteCRM<br>V8 REST API</div>
+        </div>
+        <div class="grid-3" style="margin-top: 25px;">
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-window-maximize"></i></div>
+                <h3 style="font-size: 20px;">1. UI</h3>
+                <p><code>app/cases/page.tsx</code> — buttons, forms, list. Runs in the browser.</p>
+            </div>
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-server"></i></div>
+                <h3 style="font-size: 20px;">2. API</h3>
+                <p><code>app/api/cases/...</code> — safe middle layer on the server. Hides passwords.</p>
+            </div>
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-database"></i></div>
+                <h3 style="font-size: 20px;">3. SuiteCRM</h3>
+                <p><code>lib/suitecrm.ts</code> — real storage. Cases live in the CRM database.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: Environment variables -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Environment Variables</h2>
+    <p class="subtitle"><code>.env.local</code> — server-side secrets</p>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>Variable</th><th>What it is</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>SUITECRM_URL</code></td><td>Base URL, e.g. <code>http://localhost/SuiteCRM7151</code></td></tr>
+                <tr><td><code>SUITECRM_CLIENT_ID</code></td><td>OAuth2 client ID from SuiteCRM Admin</td></tr>
+                <tr><td><code>SUITECRM_CLIENT_SECRET</code></td><td>OAuth2 client secret</td></tr>
+                <tr><td><code>SUITECRM_USERNAME</code></td><td>SuiteCRM user (e.g. <code>admin</code>)</td></tr>
+                <tr><td><code>SUITECRM_PASSWORD</code></td><td>That user's password</td></tr>
+            </tbody>
+        </table>
+        <div class="highlight-box" style="margin-top: 16px; padding: 16px 20px;">
+            <p style="font-size: 15px;">Create OAuth client: <strong>Admin → OAuth2 Clients and Tokens → Create Password Client</strong>. SuiteCRM needs <code>private.key</code> and <code>public.key</code> in <code>Api/V8/OAuth2/</code>.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: Field mapping -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Field Mapping</h2>
+    <p class="subtitle">Our app ↔ SuiteCRM Cases module</p>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>In the app</th><th>SuiteCRM field</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>title</code></td><td><code>name</code></td><td>Case subject / title</td></tr>
+                <tr><td><code>description</code></td><td><code>description</code></td><td>Long text about the case</td></tr>
+                <tr><td><code>status</code></td><td><code>status</code></td><td>See status table below</td></tr>
+                <tr><td><code>id</code></td><td>record <code>id</code></td><td>UUID; used for edit/delete, hidden in UI</td></tr>
+            </tbody>
+        </table>
+        <table style="margin-top: 12px;">
+            <thead>
+                <tr><th>You see in app</th><th>SuiteCRM stores</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Open</td><td><code>Open_New</code></td></tr>
+                <tr><td>In Progress</td><td><code>Open_Assigned</code></td></tr>
+                <tr><td>Closed</td><td><code>Closed_Closed</code></td></tr>
+            </tbody>
+        </table>
+        <p style="margin-top: 12px; font-size: 15px; color: #64748b;">Conversion in <code>lib/suitecrm.ts</code> via <code>STATUSES</code>, <code>appStatusToCrm</code>, <code>crmStatusToApp</code>.</p>
+    </div>
+</div>
+
+<!-- Slide 9: Routing core rule -->
+<div class="slide">
+    <h2 class="slide-title">How Routing Works</h2>
+    <p class="subtitle">Next.js App Router — folders + special file names</p>
+    <div class="content content-top">
+        <div class="quote-box">
+            <p>Next.js does <strong>not</strong> connect URLs to component names like <code>CasesPage</code>. It uses <strong>folders + special file names</strong> under <code>app/</code>.</p>
+        </div>
+        <div class="highlight-box" style="margin-top: 20px;">
+            <p>Folder path under <code>app/</code> + file named <code>page.tsx</code> = URL route</p>
+        </div>
+        <table style="margin-top: 20px;">
+            <thead>
+                <tr><th>File on disk</th><th>URL in browser</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>app/page.tsx</code></td><td><code>/</code></td></tr>
+                <tr><td><code>app/cases/page.tsx</code></td><td><code>/cases</code></td></tr>
+                <tr><td><code>app/about/page.tsx</code></td><td><code>/about</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Slide 10: CasesPage name -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Does <code>/cases</code> Know <code>CasesPage</code>?</h2>
+    <p class="subtitle"><strong>No.</strong> The function name is for developers only.</p>
+    <div class="content content-top">
+        <ol style="font-size: 16px; line-height: 1.8; margin: 0; padding-left: 24px;">
+            <li>Browser requests <code>/cases</code></li>
+            <li>Next.js maps segment <code>cases</code> → folder <code>app/cases/</code></li>
+            <li>Next.js loads <code>page.tsx</code> inside that folder (required filename)</li>
+            <li>Next.js renders the <code>export default</code> function from that file</li>
+            <li>Output is wrapped inside <code>app/layout.tsx</code></li>
+        </ol>
+        <div class="trace-box" style="margin-top: 16px; font-size: 11px;"><span>// app/cases/page.tsx</span>
+export default function CasesPage() {
+  // export default = use this component for this route
+  // CasesPage = optional label; rename without changing URL
+}</div>
+    </div>
+</div>
+
+<!-- Slide 11: What runs on /cases -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">What Runs When You Open <code>/cases</code></h2>
+    <div class="content content-top">
+        <div class="trace-box">http://localhost:3000/cases
+        │
+        ▼
+Next.js router matches URL segment "cases"
+        │
+        ▼
+Finds app/cases/page.tsx
+        │
+        ▼
+Renders default export (CasesPage component)
+        │
+        ▼
+Wraps it in app/layout.tsx as {children}
+        │
+        ▼
+Final HTML sent to browser</div>
+        <div class="trace-box" style="margin-top: 12px; font-size: 11px;"><span>// app/layout.tsx wraps every page</span>
+export default function RootLayout({ children }) {
+  return (
+    &lt;html lang="en"&gt;
+      &lt;body&gt;{children}&lt;/body&gt;   {/* CasesPage output goes here */}
+    &lt;/html&gt;
+  );
+}</div>
+    </div>
+</div>
+
+<!-- Slide 12: Special file names -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Special File Names</h2>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>File name</th><th>Purpose</th><th>Creates a URL?</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>page.tsx</code></td><td>UI for a route</td><td><strong>Yes</strong></td></tr>
+                <tr><td><code>layout.tsx</code></td><td>Shared wrapper around pages</td><td>No</td></tr>
+                <tr><td><code>route.ts</code></td><td>API endpoint (GET, POST, etc.)</td><td><strong>Yes</strong> (<code>/api/...</code>)</td></tr>
+                <tr><td><code>list.tsx</code>, etc.</td><td>Normal component file</td><td><strong>No</strong></td></tr>
+            </tbody>
+        </table>
+        <div class="highlight-box" style="margin-top: 16px; padding: 16px 20px;">
+            <p style="font-size: 15px;"><code>app/cases/list.tsx</code> did <strong>not</strong> create <code>/cases</code> and returned <strong>404</strong> until <code>app/cases/page.tsx</code> was added. Only <code>page.tsx</code> defines a page route.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 13: API routes -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">API Routes Use <code>route.ts</code></h2>
+    <p class="subtitle">Not <code>page.tsx</code> — export HTTP method functions</p>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>URL</th><th>File</th><th>Exported function</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>GET /api/cases</code></td><td><code>app/api/cases/route.ts</code></td><td><code>export async function GET()</code></td></tr>
+                <tr><td><code>POST /api/cases</code></td><td><code>app/api/cases/route.ts</code></td><td><code>export async function POST()</code></td></tr>
+                <tr><td><code>PATCH /api/cases/abc-123</code></td><td><code>app/api/cases/[id]/route.ts</code></td><td><code>export async function PATCH()</code></td></tr>
+                <tr><td><code>DELETE /api/cases/abc-123</code></td><td><code>app/api/cases/[id]/route.ts</code></td><td><code>export async function DELETE()</code></td></tr>
+            </tbody>
+        </table>
+        <div class="trace-box" style="margin-top: 12px; font-size: 11px;"><span>[id] = dynamic segment</span>
+/api/cases/00f7af56-2ace-42c8-b39a-e63acfa38fb5
+              └──────────────── id ────────────────┘</div>
+    </div>
+</div>
+
+<!-- Slide 14: Pages vs API -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Pages vs API Routes</h2>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>Kind</th><th>Example URL</th><th>File</th><th>Runs where</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Page (UI)</td><td><code>/cases</code></td><td><code>app/cases/page.tsx</code></td><td>Browser</td></tr>
+                <tr><td>API</td><td><code>/api/cases</code></td><td><code>app/api/cases/route.ts</code></td><td>Server only</td></tr>
+            </tbody>
+        </table>
+        <div class="highlight-box" style="margin-top: 16px; padding: 16px 20px;">
+            <p style="font-size: 15px;">The cases <strong>page</strong> calls the cases <strong>API</strong> with <code>fetch("/api/cases")</code>. Separate routes, separate files.</p>
+        </div>
+        <div class="trace-box" style="margin-top: 12px; font-size: 11px;">Mental model:
+URL path        = folder path under app/
+Page UI         = default export in page.tsx
+API handler     = GET/POST/PATCH/DELETE in route.ts
+Component name  = for humans only; router ignores it</div>
+    </div>
+</div>
+
+<!-- Slide 15: Flow 1 Load -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Flow 1: Open <code>/cases</code> (Load List)</h2>
+    <p class="subtitle">Trigger: user opens page or navigates to <code>/cases</code></p>
+    <div class="content content-top">
+        <div class="trace-box" style="font-size: 10px;">User opens /cases → Next.js loads app/cases/page.tsx
+→ CasesPage mounts → useEffect → loadCases()
+→ fetch("GET /api/cases")
+→ app/api/cases/route.ts → GET()
+→ lib/suitecrm.ts → listCases()
+   ├─ getToken()  → POST SuiteCRM /Api/access_token
+   └─ crmFetch()  → GET SuiteCRM /Api/V8/module/Cases?...
+→ Each record → toCase() → JSON array to browser
+→ setCases(data) → list renders
+
+State: loading true→false | cases filled | error if fail</div>
+    </div>
+</div>
+
+<!-- Slide 16: Flow 2 Add -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Flow 2: Add a New Case</h2>
+    <p class="subtitle">Trigger: user fills form and clicks <strong>Add</strong></p>
+    <div class="content content-top">
+        <div class="trace-box" style="font-size: 10px;">User clicks Add → handleSubmit() → validate title
+→ fetch("POST /api/cases", { title, description, status })
+→ app/api/cases/route.ts → POST()
+→ createCase(body) → toCrmFields() (title→name, status→Open_New)
+→ crmFetch("POST /Api/V8/module", { type: "Cases", attributes })
+→ SuiteCRM saves row → toCase() → new id
+→ Browser updates list → clearForm()</div>
+    </div>
+</div>
+
+<!-- Slide 17: Flow 3 Edit -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Flow 3: Edit a Case</h2>
+    <div class="content content-top">
+        <div class="grid-2" style="gap: 20px;">
+            <div class="card">
+                <h3 style="font-size: 18px;">Click Edit</h3>
+                <ul>
+                    <li><code>setEditingId(case.id)</code></li>
+                    <li>Fill form from that case</li>
+                    <li>Button shows "Update case"</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 18px;">Click Save</h3>
+                <ul>
+                    <li><code>fetch("PATCH /api/cases/{id}")</code></li>
+                    <li><code>[id]/route.ts</code> → PATCH</li>
+                    <li><code>updateCase(id, body)</code></li>
+                    <li>Replace row in list → clearForm()</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 18: Flow 4 Delete -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Flow 4: Delete a Case</h2>
+    <p class="subtitle">Trigger: user clicks <strong>Delete</strong> on a list row</p>
+    <div class="content content-top">
+        <div class="trace-box" style="font-size: 11px;">User clicks Delete
+→ handleDelete(id)
+→ fetch("DELETE /api/cases/{id}")
+→ app/api/cases/[id]/route.ts → DELETE()
+→ deleteCase(id) → crmFetch("DELETE /Api/V8/module/Cases/{id}")
+→ Browser: setCases(cases.filter(...)) — remove from list
+→ If editing same case: clearForm() too</div>
+    </div>
+</div>
+
+<!-- Slide 19: Cheat sheet -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">What Triggers What</h2>
+    <p class="subtitle">Cheat sheet</p>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>User action</th><th>Page function</th><th>HTTP call</th><th>API route</th><th>suitecrm</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Page load</td><td><code>loadCases</code></td><td>GET <code>/api/cases</code></td><td><code>GET</code></td><td><code>listCases()</code></td></tr>
+                <tr><td>Add</td><td><code>handleSubmit</code></td><td>POST <code>/api/cases</code></td><td><code>POST</code></td><td><code>createCase()</code></td></tr>
+                <tr><td>Save edit</td><td><code>handleSubmit</code></td><td>PATCH <code>/api/cases/:id</code></td><td><code>PATCH</code></td><td><code>updateCase()</code></td></tr>
+                <tr><td>Delete</td><td><code>handleDelete</code></td><td>DELETE <code>/api/cases/:id</code></td><td><code>DELETE</code></td><td><code>deleteCase()</code></td></tr>
+                <tr><td>Edit</td><td><code>handleEdit</code></td><td><em>none</em></td><td>—</td><td>—</td></tr>
+                <tr><td>Cancel</td><td><code>clearForm</code></td><td><em>none</em></td><td>—</td><td>—</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Slide 20: suitecrm.ts -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Inside <code>lib/suitecrm.ts</code></h2>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>Function</th><th>Job</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>getToken()</code></td><td>OAuth2 password grant login; caches token until expiry</td></tr>
+                <tr><td><code>crmFetch()</code></td><td>Adds Bearer header; calls any V8 endpoint</td></tr>
+                <tr><td><code>readJson()</code></td><td>Parses JSON (handles messy WAMP responses)</td></tr>
+                <tr><td><code>toCase()</code></td><td>CRM record → our Case shape</td></tr>
+                <tr><td><code>toCrmFields()</code></td><td>Form data → CRM field names</td></tr>
+                <tr><td><code>listCases()</code></td><td>GET all cases</td></tr>
+                <tr><td><code>createCase()</code></td><td>POST new case</td></tr>
+                <tr><td><code>updateCase()</code></td><td>PATCH existing case</td></tr>
+                <tr><td><code>deleteCase()</code></td><td>DELETE case</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Slide 21: OAuth -->
+<div class="slide">
+    <h2 class="slide-title">OAuth Login (Automatic)</h2>
+    <p class="subtitle">Before any Cases API call, <code>crmFetch</code> calls <code>getToken()</code></p>
+    <div class="content">
+        <div class="flow-path">
+            <div class="flow-step">POST<br><code>/Api/access_token</code></div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">Body:<br>grant_type, client, user</div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">Response:<br><code>access_token</code></div>
+            <div class="flow-arrow">➔</div>
+            <div class="flow-step">Reuse until<br>near expiry</div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 22: React state -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">React State on the Cases Page</h2>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>State</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><code>cases</code></td><td>List on screen (copy of CRM data)</td></tr>
+                <tr><td><code>title</code>, <code>description</code>, <code>status</code></td><td>Form inputs</td></tr>
+                <tr><td><code>editingId</code></td><td><code>null</code> = adding; otherwise UUID being edited</td></tr>
+                <tr><td><code>loading</code></td><td><code>true</code> while fetching list</td></tr>
+                <tr><td><code>saving</code></td><td><code>true</code> while POST/PATCH in progress</td></tr>
+                <tr><td><code>error</code></td><td>Error message in red box</td></tr>
+            </tbody>
+        </table>
+        <p style="margin-top: 12px; font-size: 15px;">React state is <strong>temporary</strong>. Refresh → <code>loadCases()</code> runs again → data reloads from SuiteCRM.</p>
+    </div>
+</div>
+
+<!-- Slide 23: use client -->
+<div class="slide">
+    <h2 class="slide-title">Why <code>"use client"</code>?</h2>
+    <div class="content">
+        <div class="grid-2">
+            <div class="card">
+                <h3 style="font-size: 20px;">Cases page needs browser APIs</h3>
+                <ul>
+                    <li><code>useState</code>, <code>useEffect</code></li>
+                    <li><code>onClick</code>, <code>onChange</code>, <code>onSubmit</code></li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 20px;">Without it</h3>
+                <p>Files default to <strong>Server Components</strong> — no hooks or events.</p>
+                <p style="margin-top: 12px;">API routes (<code>app/api/...</code>) always run on the <strong>server</strong> and can read <code>.env.local</code> safely.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 24: Sequence diagram -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">One Request End-to-End</h2>
+    <p class="subtitle">Example: list cases</p>
+    <div class="content content-top">
+        <div class="trace-box" style="font-size: 10px;">User Browser          cases/page.tsx       /api/cases        suitecrm.ts       SuiteCRM
+     |                      |                    |                  |                 |
+     | Open /cases          |                    |                  |                 |
+     |--------------------->|                    |                  |                 |
+     |                      | useEffect loadCases|                  |                 |
+     |                      | GET /api/cases     |                  |                 |
+     |                      |------------------->|                  |                 |
+     |                      |                    | listCases()      |                 |
+     |                      |                    |----------------->|                 |
+     |                      |                    |                  | POST access_token
+     |                      |                    |                  |--------------->|
+     |                      |                    |                  |<-- access_token
+     |                      |                    |                  | GET module/Cases
+     |                      |                    |                  |--------------->|
+     |                      |                    |                  |<-- JSON data[]
+     |                      |                    |<-- Case[]        |                 |
+     |                      |<-- JSON response   |                  |                 |
+     |                      | setCases(data)     |                  |                 |
+     |<-- Render list ------|                    |                  |                 |</div>
+    </div>
+</div>
+
+<!-- Slide 25: Common problems -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Common Problems</h2>
+    <div class="content content-top">
+        <table>
+            <thead>
+                <tr><th>Problem</th><th>What to check</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>404 on <code>/cases</code></td><td>File must be <code>app/cases/page.tsx</code></td></tr>
+                <tr><td>"Missing SUITECRM_..."</td><td>Create <code>.env.local</code> from <code>env.example</code></td></tr>
+                <tr><td>Login failed</td><td>Client id/secret, user/password, OAuth keys</td></tr>
+                <tr><td>API returns HTML not JSON</td><td>WAMP xdebug — <code>Api/.htaccess</code></td></tr>
+                <tr><td>Empty list</td><td>No cases in CRM yet, or wrong CRM URL</td></tr>
+                <tr><td>Status wrong after save</td><td><code>STATUSES</code> mapping in <code>suitecrm.ts</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Slide 26: Scripts & concepts -->
+<div class="slide compact-slide">
+    <h2 class="slide-title">Scripts &amp; Concepts</h2>
+    <div class="content content-top">
+        <div class="grid-2" style="gap: 20px;">
+            <div>
+                <h3 style="font-size: 20px;">npm scripts</h3>
+                <div class="trace-box" style="font-size: 11px;">npm run dev    # http://localhost:3000
+npm run build  # Production build
+npm run start  # Run production build
+npm run lint   # ESLint</div>
+            </div>
+            <div>
+                <h3 style="font-size: 20px;">Learn from this project</h3>
+                <ul class="checklist">
+                    <li>CRUD — Create, Read, Update, Delete</li>
+                    <li>REST — GET, POST, PATCH, DELETE</li>
+                    <li>BFF — <code>/api/cases</code> hides CRM secrets</li>
+                    <li>OAuth2 — token-based SuiteCRM login</li>
+                    <li>Field mapping — UI vs external system</li>
+                    <li>React state vs persistent database</li>
+                    <li>App Router — <code>page.tsx</code> vs <code>route.ts</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 27: Demo video -->
+<div class="slide compact-slide demo-slide">
+    <h2 class="slide-title" style="margin-bottom: 8px;">Demo Video</h2>
+    <p class="subtitle" style="margin-bottom: 16px;">Watch the app in action — list, add, edit, and delete cases</p>
+    <div class="content content-top">
+        <div class="card" style="padding: 16px; width: 100%;">
+            <div class="demo-video-shell" id="demo-video-shell">
+                <iframe src="https://www.dailymotion.com/embed/video/xamt01u?ui-logo=false&sharing-enable=false" title="next-js-crud-demo-video" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe>
+                <button type="button" class="demo-fs-overlay" id="demo-fullscreen-btn" aria-label="Play video in fullscreen">
+                    <i class="fa-solid fa-expand"></i> Fullscreen
+                </button>
+                <button type="button" class="demo-fs-exit" id="demo-exit-btn" aria-label="Exit fullscreen">
+                    <i class="fa-solid fa-compress"></i> Exit fullscreen
+                </button>
+            </div>
+            <p class="demo-video-link"><strong>Video:</strong> <a href="https://www.dailymotion.com/video/xamt01u" target="_blank" rel="noopener">Watch on Dailymotion</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 28: Learn more -->
+<div class="slide center-layout">
+    <div class="content center-layout">
+        <h2 class="slide-title" style="border: none; margin-bottom: 40px;">Learn More</h2>
+        <div class="grid-2" style="text-align: left;">
+            <div class="card">
+                <div class="icon"><i class="fa-brands fa-react"></i></div>
+                <h3 style="font-size: 22px;">Next.js</h3>
+                <p><a href="https://nextjs.org/docs">nextjs.org/docs</a></p>
+            </div>
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-briefcase"></i></div>
+                <h3 style="font-size: 22px;">SuiteCRM V8 API</h3>
+                <p><a href="https://docs.suitecrm.com/developer/api/developer-setup-guide/json-api/">Developer setup guide</a></p>
+            </div>
+        </div>
+        <p style="margin-top: 36px; font-size: 26px; color: #001F3F; font-family: 'Merriweather', serif;"><strong>Cases App</strong> — CRUD through Next.js and SuiteCRM</p>
+    </div>
+</div>
+
+<script>
+(function () {
+    var shell = document.getElementById("demo-video-shell");
+    var enterBtn = document.getElementById("demo-fullscreen-btn");
+    var exitBtn = document.getElementById("demo-exit-btn");
+    if (!shell || !enterBtn || !exitBtn) return;
+
+    function isNativeFullscreen() {
+        return document.fullscreenElement === shell || document.webkitFullscreenElement === shell;
+    }
+
+    function isExpanded() {
+        return shell.classList.contains("is-expanded") || isNativeFullscreen();
+    }
+
+    function enterFullscreen() {
+        document.body.classList.add("demo-video-open");
+        shell.classList.add("is-expanded");
+
+        if (shell.requestFullscreen) {
+            shell.requestFullscreen().catch(function () {});
+        } else if (shell.webkitRequestFullscreen) {
+            shell.webkitRequestFullscreen();
+        }
+    }
+
+    function exitFullscreen() {
+        shell.classList.remove("is-expanded");
+        document.body.classList.remove("demo-video-open");
+
+        if (isNativeFullscreen()) {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    }
+
+    enterBtn.addEventListener("click", enterFullscreen);
+    exitBtn.addEventListener("click", exitFullscreen);
+
+    document.addEventListener("fullscreenchange", function () {
+        if (!isNativeFullscreen() && !shell.classList.contains("is-expanded")) {
+            document.body.classList.remove("demo-video-open");
+        }
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && shell.classList.contains("is-expanded")) {
+            exitFullscreen();
+        }
+    });
+})();
+</script>
+
+</body>
+</html>
